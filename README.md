@@ -11,7 +11,7 @@ flowchart TD
     otoco(Otoco DAO contract) --"is owner"--> treasury.sol
     otoco --"mint"--> $IPAL.sol
     $IPAL.sol --"for"--> vesting.sol
-    otoco --"control"--> vesting.sol
+    otoco --"is owner"--> vesting.sol
     vesting.sol --"transfer to"--> treasury.sol
     vesting.sol --"transfer to"--> stakeholders(stake holders)
 ```
