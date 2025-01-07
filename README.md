@@ -1,5 +1,6 @@
-# [ipal.network](https://beta2.ipal.network)
-## smart contracts &amp; tokenomics
+# [ipal.network](https://beta2.ipal.network) white paper
+
+## Smart contracts &amp; tokenomics
 
 ```mermaid
 ---
