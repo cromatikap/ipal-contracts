@@ -15,3 +15,11 @@ flowchart TD
     vesting.sol --"transfer to"--> treasury.sol
     vesting.sol --"transfer to"--> stakeholders(stake holders)
 ```
+
+```mermaid
+pie showData
+    title Stakeholders total distribution
+    "Project treasury" : 70
+    "Share holders" : 25
+    "Users (airdrop)" : 5
+```
