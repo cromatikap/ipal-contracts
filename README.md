@@ -4,15 +4,15 @@
 
 ```mermaid
 ---
-title: Vault owners revenue flow
+title: "Vault owners revenue flow"
 ---
 graph TD
-    Visitor -->|Sends Payment| Contract
-    Contract -->|Transfers Payment| VaultOwner
-    Contract -->|Stores Deal Info| DealInfo
+    Visitor -->|Sends Payment| NftGatedAccess.sol
+    NftGatedAccess.sol -->|Transfers Payment| VaultOwner
+    NftGatedAccess.sol -->|Stores Deal Info| DealInfo
 
-    subgraph Ipal Contract
-        Contract -->|Mint Subscription| MintFunction
+    subgraph "NFT gated access contract"
+        NftGatedAccess.sol -->|Mint Subscription| MintFunction
         MintFunction -->|Updates| DealInfo
     end
 
