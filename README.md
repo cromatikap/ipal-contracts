@@ -1,4 +1,4 @@
-# [ipal.network](https://beta2.ipal.network) white paper
+# [ipal.network](https://beta2.ipal.network) white paper (draft)
 
 ## Smart contracts &amp; tokenomics
 
