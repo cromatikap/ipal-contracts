@@ -1,6 +1,29 @@
 # [ipal.network](https://beta2.ipal.network) white paper (draft)
 
-## Smart contracts &amp; tokenomics
+## NFT gated access
+
+```mermaid
+---
+title: Vault owners revenue flow
+---
+graph TD
+    Visitor -->|Sends Payment| Contract
+    Contract -->|Transfers Payment| VaultOwner
+    Contract -->|Stores Deal Info| DealInfo
+
+    subgraph Ipal Contract
+        Contract -->|Mint Subscription| MintFunction
+        MintFunction -->|Updates| DealInfo
+    end
+
+    subgraph DealInfo
+        DealInfo -->|Contains| VaultID
+        DealInfo -->|Contains| ImageURL
+        DealInfo -->|Contains| Price
+    end
+```
+
+## $IPAL token
 
 ```mermaid
 ---
