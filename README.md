@@ -1,4 +1,6 @@
-# [ipal.network](https://beta2.ipal.network) white paper (draft)
+![Ipal logo](https://i-p.rmcdn.net/65fd9abf114acc00326b972c/4693032/image-dbef989c-7504-46cf-97e1-410a19916f20.png?e=webp&nll=true)
+
+# White paper (draft)
 
 ## NFT gated access
 
