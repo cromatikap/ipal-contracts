@@ -9,12 +9,12 @@
 title: "Vault owners revenue flow"
 ---
 graph TD
-    Visitor -->|Sends Payment| NftGatedAccess.sol
-    NftGatedAccess.sol -->|Transfers Payment| VaultOwner
-    NftGatedAccess.sol -->|Stores Deal Info| DealInfo
+    Visitor -->|Sends Payment| KnowledgeMarket.sol
+    KnowledgeMarket.sol -->|Transfers Payment| VaultOwner
+    KnowledgeMarket.sol -->|Stores Deal Info| DealInfo
 
-    subgraph "NFT gated access contract"
-        NftGatedAccess.sol -->|Mint Subscription| MintFunction
+    subgraph "Knowledge Market contract"
+        KnowledgeMarket.sol -->|Mint Subscription| MintFunction
         MintFunction -->|Updates| DealInfo
     end
 
