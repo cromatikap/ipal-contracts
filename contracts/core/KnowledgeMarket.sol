@@ -14,78 +14,75 @@ contract KnowledgeMarket is ERC4908, ReentrancyGuard {
     string private constant DEFAULT_IMAGE_URL = "https://arweave.net/9u0cgTmkSM25PfQpGZ-JzspjOMf4uGFjkvOfKjgQnVY";
 
     struct Subscription {
-        string resourceId;
+        string vaultId;
         string imageURL;
     }
 
     struct Deal {
-        address vault;
+        address vaultOwner;
         string imageURL;
         uint256 price;
     }
 
-    // Resource string cannot be empty
-    error EmptyResourceId();
-    // Zero address cannot be used for vault or recipient
+    // Vault ID string cannot be empty
+    error EmptyVaultId();
+    // Zero address cannot be used for vault owner or recipient
     error ZeroAddress();
-    // Price cannot be zero
-    error ZeroPrice();
     // Duration cannot be zero
     error ZeroDuration();
 
-    // Maps vault addresses to their subscription offerings
-    mapping(address => Subscription[]) public vaultSubscriptions;
+    // Maps vault owner addresses to their subscription offerings
+    mapping(address => Subscription[]) public vaultOwnerSubscriptions;
     // Maps NFT IDs to their deal information
     mapping(uint256 => Deal) public dealInfo;
 
     // Events for important state changes
-    event SubscriptionCreated(address indexed vault, string resourceId, uint256 price, uint32 expirationDuration);
-    event SubscriptionDeleted(address indexed vault, string resourceId);
-    event AccessGranted(address indexed vault, string resourceId, address indexed customer, uint256 tokenId, uint256 price);
+    event SubscriptionCreated(address indexed vaultOwner, string vaultId, uint256 price, uint32 expirationDuration);
+    event SubscriptionDeleted(address indexed vaultOwner, string vaultId);
+    event AccessGranted(address indexed vaultOwner, string vaultId, address indexed customer, uint256 tokenId, uint256 price);
 
     constructor() ERC4908("Knowledge Market Access", "KMA") {}
 
     /**
      * @dev Creates a new subscription offering
-     * @param resourceId Unique identifier for the knowledge resource
-     * @param price Cost to mint an access NFT
+     * @param vaultId Unique identifier for the knowledge vault
+     * @param price Cost to mint an access NFT (can be 0 for free NFTs)
      * @param expirationDuration How long access lasts (in seconds)
      * @param imageURL URL for the image representing this subscription
      */
     function setSubscription(
-        string calldata resourceId,
+        string calldata vaultId,
         uint256 price,
         uint32 expirationDuration,
         string calldata imageURL
     ) public nonReentrant {
         // Input validation
-        if (bytes(resourceId).length == 0) revert EmptyResourceId();
-        if (price == 0) revert ZeroPrice();
+        if (bytes(vaultId).length == 0) revert EmptyVaultId();
         if (expirationDuration == 0) revert ZeroDuration();
 
         // Use the default image if none provided
         string memory finalImageURL = bytes(imageURL).length == 0 ? DEFAULT_IMAGE_URL : imageURL;
         
-        vaultSubscriptions[msg.sender].push(Subscription(resourceId, finalImageURL));
-        setAccess(resourceId, price, expirationDuration);
+        vaultOwnerSubscriptions[msg.sender].push(Subscription(vaultId, finalImageURL));
+        setAccess(vaultId, price, expirationDuration);
 
-        emit SubscriptionCreated(msg.sender, resourceId, price, expirationDuration);
+        emit SubscriptionCreated(msg.sender, vaultId, price, expirationDuration);
     }
 
     /**
      * @dev Deletes an existing subscription offering
-     * @param resourceId Unique identifier for the knowledge resource to delete
+     * @param vaultId Unique identifier for the knowledge vault to delete
      */
-    function deleteSubscription(string calldata resourceId) public nonReentrant {
-        if (bytes(resourceId).length == 0) revert EmptyResourceId();
+    function deleteSubscription(string calldata vaultId) public nonReentrant {
+        if (bytes(vaultId).length == 0) revert EmptyVaultId();
         
-        Subscription[] storage subscriptions = vaultSubscriptions[msg.sender];
+        Subscription[] storage subscriptions = vaultOwnerSubscriptions[msg.sender];
         uint256 length = subscriptions.length;
         bool found = false;
 
         for (uint256 i = 0; i < length; i++) {
-            if (keccak256(abi.encodePacked(subscriptions[i].resourceId)) 
-                    == keccak256(abi.encodePacked(resourceId))) {
+            if (keccak256(abi.encodePacked(subscriptions[i].vaultId)) 
+                    == keccak256(abi.encodePacked(vaultId))) {
                 // More gas efficient swap-and-pop
                 subscriptions[i] = subscriptions[length - 1];
                 subscriptions.pop();
@@ -95,38 +92,38 @@ contract KnowledgeMarket is ERC4908, ReentrancyGuard {
         }
 
         if (found) {
-            delAccess(resourceId);
-            emit SubscriptionDeleted(msg.sender, resourceId);
+            delAccess(vaultId);
+            emit SubscriptionDeleted(msg.sender, vaultId);
         }
     }
 
     struct SubscriptionDetails {
-        string resourceId;
+        string vaultId;
         string imageURL;
         uint256 price;
         uint32 expirationDuration;
     }
 
     /**
-     * @dev Gets all subscription offerings for a vault
-     * @param vault Address of the vault
+     * @dev Gets all subscription offerings for a vault owner
+     * @param vaultOwner Address of the vault owner
      * @return Array of subscription details
      */
-    function getVaultSubscriptions(address vault) public view returns (SubscriptionDetails[] memory) {
-        if (vault == address(0)) revert ZeroAddress();
+    function getVaultOwnerSubscriptions(address vaultOwner) public view returns (SubscriptionDetails[] memory) {
+        if (vaultOwner == address(0)) revert ZeroAddress();
         
-        uint256 length = vaultSubscriptions[vault].length;
+        uint256 length = vaultOwnerSubscriptions[vaultOwner].length;
         SubscriptionDetails[] memory subs = new SubscriptionDetails[](length);
 
         for (uint256 i = 0; i < length; i++) {
             (uint256 price, uint32 expirationDuration) = this.getAccessControl(
-                vault, 
-                vaultSubscriptions[vault][i].resourceId
+                vaultOwner, 
+                vaultOwnerSubscriptions[vaultOwner][i].vaultId
             );
 
             subs[i] = SubscriptionDetails(
-                vaultSubscriptions[vault][i].resourceId,
-                vaultSubscriptions[vault][i].imageURL,
+                vaultOwnerSubscriptions[vaultOwner][i].vaultId,
+                vaultOwnerSubscriptions[vaultOwner][i].imageURL,
                 price,
                 expirationDuration
             );
@@ -136,59 +133,60 @@ contract KnowledgeMarket is ERC4908, ReentrancyGuard {
     }
 
     /**
-     * @dev Mints an access NFT for a specific resource
-     * @param vault Address receiving the payment
-     * @param resourceId Unique identifier for the knowledge resource
+     * @dev Mints an access NFT for a specific vault
+     * @param vaultOwner Address receiving the payment
+     * @param vaultId Unique identifier for the knowledge vault
      * @param to Address receiving the access NFT
      */
     function mint(
-        address payable vault,
-        string calldata resourceId,
+        address payable vaultOwner,
+        string calldata vaultId,
         address to
     ) public payable override nonReentrant {
-        if (vault == address(0)) revert ZeroAddress();
+        if (vaultOwner == address(0)) revert ZeroAddress();
         if (to == address(0)) revert ZeroAddress();
-        if (bytes(resourceId).length == 0) revert EmptyResourceId();
+        if (bytes(vaultId).length == 0) revert EmptyVaultId();
 
-        super.mint(vault, resourceId, to);
+        // This will validate that the sent value matches the required price (which can be 0 for free NFTs)
+        super.mint(vaultOwner, vaultId, to);
 
         // Find the matching subscription's image URL
-        uint256 length = vaultSubscriptions[vault].length;
+        uint256 length = vaultOwnerSubscriptions[vaultOwner].length;
         string memory imageURL = DEFAULT_IMAGE_URL; // Default value if not found
         
         for (uint256 i = 0; i < length; i++) {
-            if (keccak256(abi.encodePacked(vaultSubscriptions[vault][i].resourceId)) 
-                    == keccak256(abi.encodePacked(resourceId))) {
-                imageURL = vaultSubscriptions[vault][i].imageURL;
+            if (keccak256(abi.encodePacked(vaultOwnerSubscriptions[vaultOwner][i].vaultId)) 
+                    == keccak256(abi.encodePacked(vaultId))) {
+                imageURL = vaultOwnerSubscriptions[vaultOwner][i].imageURL;
                 break;
             }
         }
 
         uint256 tokenId = totalSupply() - 1;
-        dealInfo[tokenId] = Deal(vault, imageURL, msg.value);
+        dealInfo[tokenId] = Deal(vaultOwner, imageURL, msg.value);
         
-        emit AccessGranted(vault, resourceId, to, tokenId, msg.value);
+        emit AccessGranted(vaultOwner, vaultId, to, tokenId, msg.value);
     }
 
     /**
-     * @dev Checks if a customer has access to any of a vault's resources
-     * @param vault Address of the vault
+     * @dev Checks if a customer has access to any of a vault owner's resources
+     * @param vaultOwner Address of the vault owner
      * @param customer Address to check access for
      * @return True if customer has access to any resource
      */
     function hasAccess(
-        address vault,
+        address vaultOwner,
         address customer
     )
         public
         view
         returns (bool)
     {
-        if (vault == address(0) || customer == address(0)) return false;
+        if (vaultOwner == address(0) || customer == address(0)) return false;
         
-        uint256 length = vaultSubscriptions[vault].length;
+        uint256 length = vaultOwnerSubscriptions[vaultOwner].length;
         for (uint256 i = 0; i < length; i++) {
-            (bool response,,) = this.hasAccess(vault, vaultSubscriptions[vault][i].resourceId, customer);
+            (bool response,,) = this.hasAccess(vaultOwner, vaultOwnerSubscriptions[vaultOwner][i].vaultId, customer);
             if (response) {
                 return true;
             }
