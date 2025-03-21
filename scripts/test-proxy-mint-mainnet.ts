@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  console.log("Testing NFT minting through ObfuscatedProxy on Base mainnet...");
+  console.log("Testing NFT minting through TransparentProxy on Base mainnet...");
   
   // Constants
   const PROXY_ADDRESS = "0x848FedB4DD81E7A009B0ED4a7C2900Ea21721159";

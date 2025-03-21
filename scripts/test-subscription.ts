@@ -17,7 +17,7 @@ async function main() {
     process.exit(1);
   }
   
-  console.log(`Testing ObfuscatedProxy on ${config.network}...`);
+  console.log(`Testing TransparentProxy on ${config.network}...`);
   
   // Get the signer
   const [deployer] = await ethers.getSigners();

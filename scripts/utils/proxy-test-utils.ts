@@ -224,7 +224,7 @@ export const NETWORKS = {
     network: "baseMainnet"
   },
   baseSepolia: {
-    proxyAddress: "0x6557c4b6F1f550381D0f3516559d4b24753C7174",
+    proxyAddress: "0x05889371937b66D9588C5C75be56CE0707bdFcf2",
     vaultId: "test-knowledge-vault-123",
     price: ethers.parseEther("0.001"),
     expirationDuration: 60 * 60 * 24 * 30, // 30 days

@@ -50,11 +50,12 @@ graph TD
         KM
         ERC4908[ERC4908 Implementation]
         KM -->|Extends| ERC4908
+        P[Proxy] -->|Delegates to| KM
     end
     
     subgraph "Frontend Layer"
         FE[IPAL Platform Interface]
-        FE -->|Interact| KM
+        FE -->|Interact| P
     end
 ```
 
@@ -136,6 +137,43 @@ The contract implements multiple security measures:
 - Custom error handling
 - Event emission for important state changes
 
+### Proxy Pattern Implementation
+The IPAL platform utilizes a transparent upgradeable proxy pattern that:
+- Provides a consistent interface for users
+- Enables interaction with the KnowledgeMarket contract
+- Maintains a standardized access point
+- Supports future upgradability while preserving the same contract address
+- Allows the team to fix potential bugs or add features without disruption to users
+
+#### Transparent Proxy Architecture
+The proxy architecture consists of three main components:
+1. **KnowledgeMarket (Implementation)**: Contains the core business logic
+2. **TransparentUpgradeableProxy**: Forwards calls to the implementation while keeping its address constant
+3. **ProxyAdmin**: Manages proxy administration, including upgrades to new implementations
+
+This architecture follows the EIP-1967 standard for proxy storage slots, ensuring compatibility with block explorers and wallet providers.
+
+```mermaid
+---
+title: "Transparent Proxy Architecture"
+---
+graph TD
+    User[User] -->|Interacts with| Proxy
+    Proxy[TransparentUpgradeableProxy] -->|Delegates calls| Implementation[KnowledgeMarket Implementation]
+    Admin[ProxyAdmin] -->|Manages| Proxy
+    Admin -->|Can upgrade| Implementation
+    
+    subgraph "Storage Layer"
+        Proxy -->|Reads/Writes| Storage[On-chain Storage]
+    end
+```
+
+Benefits of this architecture:
+- **Immutable User-Facing Address**: The proxy address remains constant, simplifying integrations
+- **Seamless Upgrades**: Implementation can be upgraded without affecting user experience
+- **Separation of Concerns**: Admin functions are isolated in a separate contract for security
+- **Future-Proofing**: Allows for bug fixes and feature additions without redeployment
+
 ---
 
 ## $IPAL Token (Draft)
@@ -190,11 +228,12 @@ IPAL's development roadmap includes:
    - Frontend application development
    - Initial creator onboarding
 
-4. **Q1 2024 (Current)**
+4. **Q1 2024 (Completed)**
    - Platform optimization
    - NFT marketplace integration
+   - Implementation of proxy pattern
 
-5. **Q2 2024 (Planned)**
+5. **Q2 2024 (Current)**
    - $IPAL token development
    - Governance model implementation
 
@@ -209,6 +248,18 @@ IPAL's development roadmap includes:
 IPAL represents a significant advancement in decentralized knowledge exchange. Through its NFT-gated access system, IPAL creates a transparent, secure marketplace where knowledge creators can monetize their expertise and consumers can gain verified access to valuable content.
 
 With the fully implemented KnowledgeMarket contract and the upcoming $IPAL token, IPAL is positioned to become a leading platform in the Web3 knowledge economy, fostering a community-driven ecosystem that rewards creators fairly while providing consumers with verifiable access rights.
+
+---
+
+## Contract Deployments
+
+### Base Mainnet
+- KnowledgeMarket Proxy: [0x848FedB4DD81E7A009B0ED4a7C2900Ea21721159](https://basescan.org/address/0x848FedB4DD81E7A009B0ED4a7C2900Ea21721159)
+
+### Base Sepolia (Testnet)
+- KnowledgeMarket Proxy: [0x05889371937b66D9588C5C75be56CE0707bdFcf2](https://sepolia.basescan.org/address/0x05889371937b66D9588C5C75be56CE0707bdFcf2)
+- KnowledgeMarket Implementation: [0x3C2D8565971d9B25295E0C0F2adDd03418fa0cB8](https://sepolia.basescan.org/address/0x3C2D8565971d9B25295E0C0F2adDd03418fa0cB8)
+- ProxyAdmin: [0xF71B73570eb55454d86952d95de72021348fE248](https://sepolia.basescan.org/address/0xF71B73570eb55454d86952d95de72021348fE248)
 
 ---
 

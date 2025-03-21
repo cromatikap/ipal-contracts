@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  console.log("Deploying KnowledgeMarket implementation and ObfuscatedProxy...");
+  console.log("Deploying KnowledgeMarket implementation and TransparentProxy...");
   
   // Step 1: Deploy the KnowledgeMarket implementation
   console.log("1. Deploying KnowledgeMarket implementation...");
@@ -11,10 +11,10 @@ async function main() {
   const implementationAddress = await implementation.getAddress();
   console.log(`   Implementation deployed at: ${implementationAddress}`);
   
-  // Step 2: Deploy the ObfuscatedProxy pointing to the implementation
-  console.log("2. Deploying ObfuscatedProxy...");
-  const ObfuscatedProxy = await ethers.getContractFactory("ObfuscatedProxy");
-  const proxy = await ObfuscatedProxy.deploy(implementationAddress);
+  // Step 2: Deploy the TransparentProxy pointing to the implementation
+  console.log("2. Deploying TransparentProxy...");
+  const KnowledgeMarketProxy = await ethers.getContractFactory("KnowledgeMarketProxy");
+  const proxy = await KnowledgeMarketProxy.deploy(implementationAddress);
   await proxy.waitForDeployment();
   const proxyAddress = await proxy.getAddress();
   console.log(`   Proxy deployed at: ${proxyAddress}`);
